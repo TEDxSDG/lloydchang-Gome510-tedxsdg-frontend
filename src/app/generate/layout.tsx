@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const NavItem = ({
   href,
@@ -25,13 +25,22 @@ const NavItem = ({
     </Link>
   );
 };
-
+  
 export default function GenerateLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const [openProfile, setOpenProfile] = useState(false);
+  const [ideaTitle, setIdeaTitle] = useState<string>('New Idea')
+
+  useEffect(() => {
+    const selectedIdea = JSON.parse(localStorage.getItem('selectedIdea') || '{}')
+    console.log('idea', selectedIdea)
+    if (selectedIdea && selectedIdea.ideaTitle) {
+      setIdeaTitle(selectedIdea.ideaTitle)
+    }
+  }, [])
 
   return (
     <div className="font-sans bg-gray-50 flex">
@@ -57,7 +66,7 @@ export default function GenerateLayout({
         <header className="bg-transparent shadow-lg">
           <nav className="flex items-center justify-between px-6 py-4">
             <h1 className="text-xl font-semibold text-gray-800">
-              Business Name
+              {ideaTitle}
             </h1>
             <div className="relative">
               <div
