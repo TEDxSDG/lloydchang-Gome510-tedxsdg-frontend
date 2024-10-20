@@ -130,6 +130,14 @@ export default function InspirationPage() {
     console.log('res', data);
 
     // TODO --- send JSON to planning api endpoint
+    const planningResponse = await fetch('https://ted-murex.vercel.app/business_plan_roadmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const planningData = await planningResponse.json();
+    console.log('planningData', planningData);
+    localStorage.setItem('planningResults', JSON.stringify(planningData));
     
     // Navigate to the next page
     router.push('/generate/planning');

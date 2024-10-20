@@ -9,12 +9,13 @@ export default function FundingPage() {
   const [investors, setInvestors] = useState<string>("");
   const [grants, setGrants] = useState<string>("");
   const [grantProposal, setGrantProposal] = useState<string>("");
-  const [pitchText, setPitchText] = useState<string | null>(null);
+  const [pitchText, setPitchText] = useState<string>('');
   const [pitchAudio, setPitchAudio] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [investorsCollapsed, setInvestorsCollapsed] = useState(true);
   const [grantsCollapsed, setGrantsCollapsed] = useState(true);
+  const [pitchCollapsed, setPitchCollapsed] = useState(true);
   const [generatingAudio, setGeneratingAudio] = useState(false);
 
   useEffect(() => {
@@ -83,8 +84,9 @@ export default function FundingPage() {
             }
           );
           const pitchTextData = await pitchTextResponse.json();
-          localStorage.setItem("pitchTextResults", JSON.stringify(pitchTextData));
-          setPitchText(pitchTextData);
+          console.log('pitchTextData', pitchTextData)
+          localStorage.setItem("pitchTextResults", JSON.stringify(pitchTextData.pitch_text));
+          setPitchText(pitchTextData.pitch_text);
 
 
         } catch (error) {
@@ -131,11 +133,13 @@ export default function FundingPage() {
     }
   };
 
-  const toggleSection = (section: 'investors' | 'grants') => {
+  const toggleSection = (section: 'investors' | 'grants' | 'pitch') => {
     if (section === 'investors') {
       setInvestorsCollapsed(!investorsCollapsed);
-    } else {
+    } else if (section === 'grants') {
       setGrantsCollapsed(!grantsCollapsed);
+    } else {
+      setPitchCollapsed(!pitchCollapsed)
     }
   };
 
@@ -211,6 +215,21 @@ export default function FundingPage() {
         {!grantsCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
             <div dangerouslySetInnerHTML={{ __html: marked.parse(grants) }}></div>
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <button 
+          onClick={() => toggleSection('pitch')}
+          className="text-3xl font-bold w-full text-left flex justify-between items-center bg-gray-200 p-4 rounded-t"
+        >
+          <span>Pitch</span>
+          <span>{pitchCollapsed ? '▼' : '▲'}</span>
+        </button>
+        {!pitchCollapsed && (
+          <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
+            <div dangerouslySetInnerHTML={{ __html: marked.parse(pitchText) }}></div>
           </div>
         )}
       </div>
