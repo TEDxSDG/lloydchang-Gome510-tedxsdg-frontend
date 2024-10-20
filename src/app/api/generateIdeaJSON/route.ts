@@ -4,7 +4,7 @@ import OpenAI from "openai";
 export async function POST(req) {
     const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
     const data = await req.text()
-    console.log('data', data)
+    // console.log('data', data)
     // data should be {idea:'', sdg:''}
     const systemPrompt = `Given an idea for a nonprofit that covers the given sustainable development goal, please return the following JSON: 
     {
@@ -41,7 +41,7 @@ export async function POST(req) {
         ],
         response_format: { "type": "json_object" }
     });
-    console.log('completion', completion.choices[0].message.content)
+    // console.log('completion', completion.choices[0].message.content)
     const summaries = JSON.parse(completion.choices[0].message.content);
 
     return NextResponse.json(summaries);
