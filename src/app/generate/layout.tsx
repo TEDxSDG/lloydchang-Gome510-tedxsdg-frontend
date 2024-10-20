@@ -1,6 +1,8 @@
 'use client'
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
+import { User } from 'lucide-react';
+import { useState } from "react";
 
 const NavItem = ({ href, children }: { href: string; children: React.ReactNode }) => {
     const pathname = usePathname();
@@ -10,8 +12,8 @@ const NavItem = ({ href, children }: { href: string; children: React.ReactNode }
         <Link
             href={href}
             className={`p-2 rounded block ${isActive
-                    ? 'bg-blue-500 text-white'
-                    : 'hover:bg-gray-200'
+                ? 'bg-blue-500 text-white'
+                : 'hover:bg-gray-200'
                 }`}
         >
             {children}
@@ -24,6 +26,9 @@ export default function GenerateLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+
+    const [openProfile, setOpenProfile] = useState(false)
+
     return (
         <div className="font-sans bg-gray-50 flex">
             {/* Left side navigation */}
@@ -32,10 +37,10 @@ export default function GenerateLayout({
                     <p className="text-2xl font-bold text-gray-900">TEDxSDG</p>
                 </Link>
                 <ul className="space-y-2 p-4">
-                    <li><NavItem href="/generate/inspiration">Inspiration</NavItem></li>
-                    <li><NavItem href="/generate/planning">Planning</NavItem></li>
-                    <li><NavItem href="/generate/funding">Funding</NavItem></li>
-                    <li><NavItem href="/generate/distribution">Distribution</NavItem></li>
+                    <li><NavItem href="/generate/inspiration">1. Inspiration</NavItem></li>
+                    <li><NavItem href="/generate/planning">2. Planning</NavItem></li>
+                    <li><NavItem href="/generate/funding">3. Funding</NavItem></li>
+                    <li><NavItem href="/generate/distribution">4. Distribution</NavItem></li>
                 </ul>
             </nav>
 
@@ -43,9 +48,24 @@ export default function GenerateLayout({
                 <header className="bg-transparent shadow-lg">
                     <nav className="flex items-center justify-between px-6 py-4">
                         <h1 className="text-xl font-semibold text-gray-800">Business Name</h1>
-                        {/* <div className="flex items-center space-x-4">
-                            Auth
-                        </div> */}
+                        <div className="relative">
+                            <div 
+                                onClick={() => setOpenProfile(!openProfile)} 
+                                className="bg-gray-200 rounded-full p-2 cursor-pointer"
+                            >
+                                <User className="text-gray-600" />
+                            </div>
+                            {openProfile && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                                    <Link href={'/'} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                        Projects
+                                    </Link>
+                                    <Link href={'/'} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left">
+                                        Settings
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </nav>
                 </header>
 
