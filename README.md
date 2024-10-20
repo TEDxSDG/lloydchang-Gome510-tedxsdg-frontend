@@ -7,16 +7,22 @@ TEDxSDG empowers non-profits and individuals to contribute to the UN's Sustainab
 ## 🌟 Key Features
 
 ### 1. Inspiration Phase
+Generate ideas for your non-profit goals by selecting an SDG. TEDxSDG generates summaries of TEDx talks related to the SDG, each with a non-profit idea based on the talk! User can select an idea and make changes before moving on to the 'Planning Phase'. 
+
 - **TEDx Talk Analysis**: Semantic analysis of TEDx talks to extract ideas and actionable insights.
 - **SDG Alignment**: Automatic mapping of ideas to relevant UN Sustainable Development Goals.
 
 ### 2. Planning Phase
+TEDxSDG takes the idea and generates a step-by-step project plan to make your non-profit come to life! It includes details on how to incorporate, hiring, legal compliance, and more.
+
 - **Roadmaps**: Project planning facilitated by examples of successful initiatives.
 - **Resource Planning**: Automated timeline generation based on customizable templates.
 
 ### 3. Funding Phase
-- **Funding Discovery**: Leveraging LLMs and targeted internet searches to connect projects with potential funding sources.
-- **Simplified Matching**: Streamlining the process of identifying potential grant providers or impact investors tailored to the non-profit’s mission and goals.
+TEDxSDG uses the project plan to generate a grant proposal and a guide for finding investors!
+
+- **Finding Investors**: Generatation of actionable steps for finding investors.
+- **Grant Writing**: Leveraging LLMs to write grant proposals that are tailored to your unique non-profit.
 
 
 ## Addressing Societal Challenges & UN SDG Alignment
