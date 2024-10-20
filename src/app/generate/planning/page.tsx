@@ -59,7 +59,7 @@ export default function PlanningPage() {
           onClick={() => setPlanCollapsed(!planCollapsed)}
           className="text-3xl font-bold w-full text-left flex justify-between items-center bg-gray-200 p-4 rounded-t"
         >
-          <span>Pitch</span>
+          <span>Business Plan</span>
           <span>{planCollapsed ? '▼' : '▲'}</span>
         </button>
         {!planCollapsed && (

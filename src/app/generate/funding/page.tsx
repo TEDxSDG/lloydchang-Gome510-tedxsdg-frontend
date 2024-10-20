@@ -9,14 +9,14 @@ export default function FundingPage() {
   const [investors, setInvestors] = useState<string>("");
   const [grants, setGrants] = useState<string>("");
   const [grantProposal, setGrantProposal] = useState<string>("");
-  const [pitchText, setPitchText] = useState<string>('');
+  // const [pitchText, setPitchText] = useState<string>('');
   const [pitchAudio, setPitchAudio] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [investorsCollapsed, setInvestorsCollapsed] = useState(true);
   const [grantsCollapsed, setGrantsCollapsed] = useState(true);
-  const [pitchCollapsed, setPitchCollapsed] = useState(true);
-  const [generatingAudio, setGeneratingAudio] = useState(false);
+  // const [pitchCollapsed, setPitchCollapsed] = useState(true);
+  // const [generatingAudio, setGeneratingAudio] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,13 +24,13 @@ export default function FundingPage() {
       const cachedGrants = localStorage.getItem("grantResults");
       const cachedInvestors = localStorage.getItem("investorResults");
       const cachedGrantProposal = localStorage.getItem("grantProposalResults");
-      const cachedPitchText = localStorage.getItem("pitchTextResults");
+      // const cachedPitchText = localStorage.getItem("pitchTextResults");
 
-      if (cachedGrants && cachedInvestors && cachedGrantProposal && cachedPitchText) {
+      if (cachedGrants && cachedInvestors && cachedGrantProposal) {
         setGrants(JSON.parse(cachedGrants));
         setInvestors(JSON.parse(cachedInvestors));
         setGrantProposal(JSON.parse(cachedGrantProposal));
-        setPitchText(JSON.parse(cachedPitchText))
+        // setPitchText(JSON.parse(cachedPitchText))
         setLoading(false);
       } else {
         // If no cached results, make the API call
@@ -75,18 +75,18 @@ export default function FundingPage() {
           setInvestors(investorData);
 
           // Fetch pitch
-          const pitchTextResponse = await fetch(
-            "https://ted-murex.vercel.app/generatePitchText",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(request),
-            }
-          );
-          const pitchTextData = await pitchTextResponse.json();
-          console.log('pitchTextData', pitchTextData)
-          localStorage.setItem("pitchTextResults", JSON.stringify(pitchTextData.pitch_text));
-          setPitchText(pitchTextData.pitch_text);
+          // const pitchTextResponse = await fetch(
+          //   "https://ted-murex.vercel.app/generatePitchText",
+          //   {
+          //     method: "POST",
+          //     headers: { "Content-Type": "application/json" },
+          //     body: JSON.stringify(request),
+          //   }
+          // );
+          // const pitchTextData = await pitchTextResponse.json();
+          // console.log('pitchTextData', pitchTextData)
+          // localStorage.setItem("pitchTextResults", JSON.stringify(pitchTextData.pitch_text));
+          // setPitchText(pitchTextData.pitch_text);
 
 
         } catch (error) {
@@ -138,50 +138,51 @@ export default function FundingPage() {
       setInvestorsCollapsed(!investorsCollapsed);
     } else if (section === 'grants') {
       setGrantsCollapsed(!grantsCollapsed);
-    } else {
-      setPitchCollapsed(!pitchCollapsed)
     }
+    // else {
+    //   setPitchCollapsed(!pitchCollapsed)
+    // }
   };
 
-  const handleGenerateAudio = async () => {
-    setGeneratingAudio(true);
-    try {
+  // const handleGenerateAudio = async () => {
+  //   setGeneratingAudio(true);
+  //   try {
 
-      const pitchResponse = await fetch(
-        "https://ted-murex.vercel.app/generatePitchAudio",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(pitchText),
-        }
-      );
+  //     const pitchResponse = await fetch(
+  //       "https://ted-murex.vercel.app/generatePitchAudio",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify(pitchText),
+  //       }
+  //     );
 
-      if (!pitchResponse.ok) {
-        throw new Error('Failed to generate pitch audio');
-      }
+  //     if (!pitchResponse.ok) {
+  //       throw new Error('Failed to generate pitch audio');
+  //     }
 
-      const audioBlob = await pitchResponse.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
+  //     const audioBlob = await pitchResponse.blob();
+  //     const audioUrl = URL.createObjectURL(audioBlob);
 
-      // Create a temporary anchor element to trigger the download
-      const a = document.createElement('a');
-      a.href = audioUrl;
-      a.download = 'pitch_audio.mp3'; // You can change the file name and extension as needed
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+  //     // Create a temporary anchor element to trigger the download
+  //     const a = document.createElement('a');
+  //     a.href = audioUrl;
+  //     a.download = 'pitch_audio.mp3'; // You can change the file name and extension as needed
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     document.body.removeChild(a);
 
-      // Optionally, you can also update the pitchAudio state and localStorage
-      setPitchAudio(audioUrl);
-      localStorage.setItem("pitchAudioUrl", audioUrl);
+  //     // Optionally, you can also update the pitchAudio state and localStorage
+  //     setPitchAudio(audioUrl);
+  //     localStorage.setItem("pitchAudioUrl", audioUrl);
 
-    } catch (error) {
-      console.error("Error generating audio:", error);
-      alert('Failed to generate audio. Please try again.');
-    } finally {
-      setGeneratingAudio(false);
-    }
-  };
+  //   } catch (error) {
+  //     console.error("Error generating audio:", error);
+  //     alert('Failed to generate audio. Please try again.');
+  //   } finally {
+  //     setGeneratingAudio(false);
+  //   }
+  // };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -219,7 +220,7 @@ export default function FundingPage() {
         )}
       </div>
 
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <button 
           onClick={() => toggleSection('pitch')}
           className="text-3xl font-bold w-full text-left flex justify-between items-center bg-gray-200 p-4 rounded-t"
@@ -232,7 +233,7 @@ export default function FundingPage() {
             <div dangerouslySetInnerHTML={{ __html: marked.parse(pitchText) }}></div>
           </div>
         )}
-      </div>
+      </div> */}
 
       {pitchAudio && (
         <div className="mb-6">
@@ -252,13 +253,13 @@ export default function FundingPage() {
           {generatingPDF ? 'Generating PDF...' : 'Generate Grant Proposal PDF'}
         </button>
 
-        <button
+        {/* <button
           onClick={handleGenerateAudio}
           disabled={generatingAudio}
           className="mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         >
           {generatingAudio ? 'Generating Audio...' : 'Generate & Download Pitch Audio'}
-        </button>
+        </button> */}
       </div>
     </div>
   );
