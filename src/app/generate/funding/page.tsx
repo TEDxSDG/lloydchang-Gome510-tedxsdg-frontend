@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { fetchLLMResults } from "@/lib/utils";
+import request from "./request.json";
 
 export default function FundingPage() {
   const [results, setResults] = useState<any>(null);
@@ -19,7 +20,17 @@ export default function FundingPage() {
       } else {
         // If no cached results, make the API call
         try {
-          const newResults = await fetchLLMResults();
+          const newResults = await fetch(
+            "https://ted-murex.vercel.app/grantInfo",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: request,
+              mode: "no-cors",
+            }
+          );
           // Store the new results in local storage
           localStorage.setItem("llmResults", JSON.stringify(newResults));
           setResults(newResults);
@@ -38,15 +49,5 @@ export default function FundingPage() {
     return <div>Loading...</div>;
   }
 
-  return (
-    <div>
-      {results &&
-        Object.entries(results).map(([key, value]) => (
-          <div className="mb-4" key={key}>
-            <h2 className="text-lg font-bold">{key}</h2>
-            <p>{value}</p>
-          </div>
-        ))}
-    </div>
-  );
+  return <div>{JSON.stringify(results)}</div>;
 }
