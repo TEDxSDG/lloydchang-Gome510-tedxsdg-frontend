@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { fetchLLMResults } from "@/lib/utils";
 import request from "./request.json";
 import { marked } from "marked";
 import jsPDF from 'jspdf';
@@ -12,6 +11,8 @@ export default function FundingPage() {
   const [grantProposal, setGrantProposal] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [investorsCollapsed, setInvestorsCollapsed] = useState(true);
+  const [grantsCollapsed, setGrantsCollapsed] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,20 +111,50 @@ export default function FundingPage() {
     }
   };
 
+  const toggleSection = (section: 'investors' | 'grants') => {
+    if (section === 'investors') {
+      setInvestorsCollapsed(!investorsCollapsed);
+    } else {
+      setGrantsCollapsed(!grantsCollapsed);
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* <h1 className="text-3xl font-bold mb-6">Investors</h1>
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div dangerouslySetInnerHTML={{ __html: marked.parse(investors) }}></div>
-      </div> */}
-      <h1 className="text-3xl font-bold mb-6">Grants</h1>
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div dangerouslySetInnerHTML={{ __html: marked.parse(grants) }}></div>
+      <div className="mb-6">
+        <button 
+          onClick={() => toggleSection('investors')}
+          className="text-3xl font-bold w-full text-left flex justify-between items-center bg-gray-200 p-4 rounded-t"
+        >
+          <span>Investors</span>
+          <span>{investorsCollapsed ? '▼' : '▲'}</span>
+        </button>
+        {!investorsCollapsed && (
+          <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
+            <div dangerouslySetInnerHTML={{ __html: marked.parse(investors) }}></div>
+          </div>
+        )}
       </div>
+
+      <div className="mb-6">
+        <button 
+          onClick={() => toggleSection('grants')}
+          className="text-3xl font-bold w-full text-left flex justify-between items-center bg-gray-200 p-4 rounded-t"
+        >
+          <span>Grants</span>
+          <span>{grantsCollapsed ? '▼' : '▲'}</span>
+        </button>
+        {!grantsCollapsed && (
+          <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
+            <div dangerouslySetInnerHTML={{ __html: marked.parse(grants) }}></div>
+          </div>
+        )}
+      </div>
+
       <button
         onClick={handleGeneratePDF}
         disabled={generatingPDF}
