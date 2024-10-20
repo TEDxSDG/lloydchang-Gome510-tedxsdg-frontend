@@ -9,6 +9,7 @@ export default function FundingPage() {
   const [investors, setInvestors] = useState<string>("");
   const [grants, setGrants] = useState<string>("");
   const [grantProposal, setGrantProposal] = useState<string>("");
+  const [pitchAudio, setPitchAudio] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [investorsCollapsed, setInvestorsCollapsed] = useState(true);
@@ -20,11 +21,13 @@ export default function FundingPage() {
       const cachedGrants = localStorage.getItem("grantResults");
       const cachedInvestors = localStorage.getItem("investorResults");
       const cachedGrantProposal = localStorage.getItem("grantProposalResults");
+      const cachedPitchAudio = localStorage.getItem("pitchResults");
 
-      if (cachedGrants && cachedInvestors && cachedGrantProposal) {
+      if (cachedGrants && cachedInvestors && cachedGrantProposal && cachedPitchAudio) {
         setGrants(JSON.parse(cachedGrants));
         setInvestors(JSON.parse(cachedInvestors));
         setGrantProposal(JSON.parse(cachedGrantProposal));
+        setPitchAudio(JSON.parse(cachedPitchAudio))
         setLoading(false);
       } else {
         // If no cached results, make the API call
@@ -67,6 +70,28 @@ export default function FundingPage() {
           const investorData = await investorResponse.json();
           localStorage.setItem("investorResults", JSON.stringify(investorData));
           setInvestors(investorData);
+
+          // Fetch pitch
+          // const pitchResponse = await fetch(
+          //   "https://ted-murex.vercel.app/generatePitch",
+          //   {
+          //     method: "POST",
+          //     headers: { "Content-Type": "application/json" },
+          //     body: JSON.stringify(request),
+          //   }
+          // );
+
+          // if (!pitchResponse.ok) {
+          //   throw new Error('Failed to generate pitch');
+          // }
+
+          // const audioBlob = await pitchResponse.blob();
+          // const audioUrl = URL.createObjectURL(audioBlob);
+          // setPitchAudio(audioUrl);
+
+          // // You might want to store the audio URL in localStorage as well
+          // localStorage.setItem("pitchAudioUrl", audioUrl);
+
         } catch (error) {
           console.error("Error fetching results:", error);
         } finally {
@@ -154,6 +179,15 @@ export default function FundingPage() {
           </div>
         )}
       </div>
+
+      {pitchAudio && (
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-4">Pitch Audio</h2>
+          <audio controls src={pitchAudio}>
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      )}
 
       <button
         onClick={handleGeneratePDF}

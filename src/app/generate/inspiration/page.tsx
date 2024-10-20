@@ -19,6 +19,13 @@ interface Summary {
   ideaTitle: string;
 }
 
+interface Idea {
+  idea: string;
+  ideaTitle: string;
+  sdg?: string;
+  url?: string;
+}
+
 const SDGs: SDG[] = [
   { id: "sdg1", name: "No Poverty", icon: "/assets/sdg1.svg" },
   { id: "sdg2", name: "Zero Hunger", icon: "/assets/sdg2.svg" },
@@ -43,8 +50,7 @@ export default function InspirationPage() {
   const [selectedSDG, setSelectedSDG] = useState<SDG | null>(null);
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
-  const [editingIdea, setEditingIdea] = useState<string | null>(null);
-  const [editedIdea, setEditedIdea] = useState<string>('');
+  const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
   const router = useRouter();
 
   const handleSDGClick = async (sdg: SDG) => {
@@ -83,28 +89,44 @@ export default function InspirationPage() {
     setExpandedSummary(expandedSummary === url ? null : url);
   };
 
-  const handleEditIdea = (idea: string) => {
-    setEditingIdea(idea);
-    setEditedIdea(idea);
+  const handleEditIdea = (summary: Summary) => {
+    setEditingIdea({
+      idea: summary.idea,
+      ideaTitle: summary.ideaTitle,
+      url: summary.url
+    });
   };
 
   const handleConfirmIdea = async () => {
-    // Here you can save the edited idea to your state or send it to an API
-    console.log('Confirmed idea:', editedIdea);
-    
+    if (!editingIdea) return;
+
+    const newIdea: Idea = {
+      ...editingIdea,
+      sdg: selectedSDG ? `${selectedSDG.id}: ${selectedSDG.name}` : ''
+    };
+
     // Save the idea to localStorage
-    localStorage.setItem('selectedIdea', editedIdea);
+    localStorage.setItem('selectedIdea', JSON.stringify(newIdea));
+
+    // Add to Ideas in localStorage
+    const existingIdeas = JSON.parse(localStorage.getItem('ideas') || '[]');
+    const updatedIdeas = [...existingIdeas, newIdea];
+    localStorage.setItem('ideas', JSON.stringify(updatedIdeas));
 
     // get idea JSON
     const response = await fetch('/api/generateIdeaJSON', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idea: editedIdea, sdg: `${selectedSDG?.id}: ${selectedSDG?.name}` }),
+      body: JSON.stringify({ 
+        idea: newIdea.idea, 
+        ideaTitle: newIdea.ideaTitle,
+        sdg: newIdea.sdg
+      }),
     });
     const data = await response.json();
-    console.log('res', data)
+    console.log('res', data);
 
-    // send JSON to planning api endpoint
+    // TODO --- send JSON to planning api endpoint
     
     // Navigate to the next page
     router.push('/generate/planning');
@@ -150,10 +172,10 @@ export default function InspirationPage() {
                             Watch TED Talk
                           </Link>
                           <button
-                            onClick={() => handleEditIdea(sum.idea)}
+                            onClick={() => handleEditIdea(sum)}
                             className="flex items-center text-green-600 hover:text-green-700"
                           >
-                            <Edit2 size={16} className="mr-1" /> Edit Idea
+                            <Edit2 size={16} className="mr-1" /> Edit/Confirm Idea
                           </button>
                         </div>
                       </div>
@@ -171,10 +193,18 @@ export default function InspirationPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
             <h3 className="text-xl font-semibold mb-4">Edit Your Idea</h3>
+            <input
+              type="text"
+              value={editingIdea.ideaTitle}
+              onChange={(e) => setEditingIdea({...editingIdea, ideaTitle: e.target.value})}
+              className="w-full p-2 border rounded mb-4"
+              placeholder="Idea Title"
+            />
             <textarea
-              value={editedIdea}
-              onChange={(e) => setEditedIdea(e.target.value)}
+              value={editingIdea.idea}
+              onChange={(e) => setEditingIdea({...editingIdea, idea: e.target.value})}
               className="w-full h-40 p-2 border rounded mb-4"
+              placeholder="Idea Description"
             />
             <div className="flex justify-end space-x-2">
               <button

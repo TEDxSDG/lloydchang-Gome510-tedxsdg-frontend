@@ -2,16 +2,18 @@
 import { useEffect, useState } from 'react';
 import Link from "next/link";
 
-interface Project {
-  id: string;
-  name: string;
+interface Idea {
+  idea: string;
+  ideaTitle: string;
+  sdg?: string;
+  url?: string;
 }
 
 export default function Home() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Idea[]>([]);
 
   useEffect(() => {
-    const storedProjects = localStorage.getItem('projects');
+    const storedProjects = localStorage.getItem('ideas');
     if (storedProjects) {
       setProjects(JSON.parse(storedProjects));
     }
@@ -32,24 +34,24 @@ export default function Home() {
               <h2 className="text-4xl font-bold mb-4 text-red-600">Your Projects</h2>
               <ul className="mb-8">
                 {projects.map((project) => (
-                  <li key={project.id} className="mb-2">
+                  <li key={project.url} className="mb-2">
                     <Link 
-                      href={`/generate/inspiration`} 
+                      href={`/generate/planning`} 
                       className="text-blue-600 hover:underline"
                       onClick={() => {
-                        localStorage.setItem('activeProject', JSON.stringify(project));
+                        localStorage.setItem('selectedIdea', JSON.stringify(project));
                       }}
                     >
-                      {project.name}
+                      {project.ideaTitle}
                     </Link>
                   </li>
                 ))}
               </ul>
               <Link
-                href="/generate"
+                href="/generate/inspiration"
                 className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-300"
               >
-                Start New Project
+                Start New Idea
               </Link>
             </>
           ) : (
@@ -72,7 +74,7 @@ export default function Home() {
                   Get Started
                 </Link>
               </div>
-              <button
+              {/* <button
                 onClick={() => {
                   const existingProjects = JSON.parse(localStorage.getItem('projects') || '[]');
                   const newProject = { id: Date.now(), name: 'New Project' };
@@ -83,7 +85,7 @@ export default function Home() {
                 className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300"
               >
                 Add Test Project
-              </button>
+              </button> */}
             </>
           )}
         </div>
