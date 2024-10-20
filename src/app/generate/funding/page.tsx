@@ -7,39 +7,67 @@ import { marked } from "marked";
 import jsPDF from 'jspdf';
 
 export default function FundingPage() {
-  const [results, setResults] = useState<any>(null);
+  const [investors, setInvestors] = useState<string>("");
+  const [grants, setGrants] = useState<string>("");
+  const [grantProposal, setGrantProposal] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       // Check if we have cached results in local storage
-      const cachedResults = localStorage.getItem("llmResults");
+      const cachedGrants = localStorage.getItem("grantResults");
+      const cachedInvestors = localStorage.getItem("investorResults");
+      const cachedGrantProposal = localStorage.getItem("grantProposalResults");
 
-      if (cachedResults && cachedResults !== "undefined") {
-        // If we have cached results, use them
-        setResults(JSON.parse(cachedResults));
+      if (cachedGrants && cachedInvestors && cachedGrantProposal) {
+        setGrants(JSON.parse(cachedGrants));
+        setInvestors(JSON.parse(cachedInvestors));
+        setGrantProposal(JSON.parse(cachedGrantProposal));
         setLoading(false);
       } else {
         // If no cached results, make the API call
         try {
-          const response = await fetch(
+          // Fetch grants
+          const grantResponse = await fetch(
             "https://ted-murex.vercel.app/grantInfo",
             {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify(request),
-              // mode: "no-cors",
-              
             }
           );
-          const data = await response.json();
-          localStorage.setItem("llmResults", JSON.stringify(data));
-          setResults(data);
+          const grantData = await grantResponse.json();
+          localStorage.setItem("grantResults", JSON.stringify(grantData));
+          setGrants(grantData);
+
+          // fetch grant proposal
+          const grantProposalResponse = await fetch(
+            "https://ted-murex.vercel.app/getGrantProposal",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(request),
+            }
+          );
+          const grantProposalData = await grantProposalResponse.json();
+          localStorage.setItem("grantProposalResults", JSON.stringify(grantProposalData));
+          setGrantProposal(grantProposalData);
+
+          // Fetch investors
+          const investorResponse = await fetch(
+            "https://ted-murex.vercel.app/investors",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(request),
+            }
+          );
+          const investorData = await investorResponse.json();
+          localStorage.setItem("investorResults", JSON.stringify(investorData));
+          setInvestors(investorData);
         } catch (error) {
-          console.error("Error fetching LLM results:", error);
+          console.error("Error fetching results:", error);
         } finally {
           setLoading(false);
         }
@@ -55,7 +83,7 @@ export default function FundingPage() {
       const doc = new jsPDF();
       
       // Convert markdown to HTML
-      const htmlContent = marked.parse(results);
+      const htmlContent = marked.parse(grantProposal);
       
       // Remove HTML tags to get plain text
       const plainText = htmlContent.replace(/<[^>]+>/g, '');
@@ -88,9 +116,13 @@ export default function FundingPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Grant Proposal Information</h1>
+      {/* <h1 className="text-3xl font-bold mb-6">Investors</h1>
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div dangerouslySetInnerHTML={{ __html: marked.parse(results) }}></div>
+        <div dangerouslySetInnerHTML={{ __html: marked.parse(investors) }}></div>
+      </div> */}
+      <h1 className="text-3xl font-bold mb-6">Grants</h1>
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <div dangerouslySetInnerHTML={{ __html: marked.parse(grants) }}></div>
       </div>
       <button
         onClick={handleGeneratePDF}
