@@ -1,43 +1,28 @@
 {
   "idea": {
-    "name": "Empowering Communities",
+    "name": "EcoEd Empowerment",
+    "mission": "To provide quality environmental education and sustainable livelihood training to underserved communities, empowering them to combat climate change and poverty simultaneously.",
     "goals": [
-      "Reduce poverty and inequality within communities",
-      "Provide access to quality education and job training",
-      "Foster economic empowerment and entrepreneurship",
-      "Promote social inclusion and community engagement"
+      "Educate 10,000 individuals on environmental conservation and sustainable practices annually",
+      "Train 5,000 people in green job skills each year",
+      "Implement 100 community-based renewable energy projects in rural areas by 2030",
+      "Reduce poverty rates by 20% in target communities through sustainable livelihood programs"
     ],
     "targetMarket": {
-      "demographics": [
-        "Individuals and families living in poverty",
-        "Businesses and organizations seeking to make a positive social impact"
-      ],
-      "ageRange": "18-65",
-      "geographicFocus": [
-        "Underserved communities in urban and rural areas",
-        "Low-income neighborhoods in cities like Detroit, Chicago, and Baltimore",
-        "Rural areas with high poverty rates, such as rural Appalachia and the Great Plains",
-        "Areas with high concentrations of low-income families, such as the South and the Southwest"
-      ]
+      "entity": "Individuals and communities",
+      "ageRange": "15-65",
+      "income": "Low to middle income",
+      "occupation": "Unemployed, underemployed, or in traditional non-sustainable industries",
+      "geography": "Rural and peri-urban areas in developing countries",
+      "marginalizedIdentity": "Indigenous populations, women, youth"
     },
-    "geography": {
-      "primaryFocusAreas": [
-        "Urban and rural areas with high poverty rates",
-        "Low-income neighborhoods in cities like Detroit, Chicago, and Baltimore",
-        "Rural areas with high poverty rates, such as rural Appalachia and the Great Plains",
-        "Areas with high concentrations of low-income families, such as the South and the Southwest"
-      ],
-      "microFocusAreas": [
-        "Low-income neighborhoods in Detroit, Chicago, and Baltimore",
-        "Rural areas in Appalachia and the Great Plains",
-        "Areas in the South and Southwest with high poverty rates"
-      ]
-    },
-    "keyPrograms": [
-      "Education and job training programs",
-      "Financial assistance programs",
-      "Mentorship and coaching"
-    ],
-    "missionStatement": "Empowering individuals to break the cycle of poverty by providing access to education, job training, and financial assistance, and promoting economic mobility and self-sufficiency in underserved communities."
+    "primaryProduct": "Integrated environmental education and sustainable livelihood training programs",
+    "sdgs": [
+      "SDG 1: No Poverty",
+      "SDG 4: Quality Education",
+      "SDG 7: Affordable and Clean Energy",
+      "SDG 8: Decent Work and Economic Growth",
+      "SDG 13: Climate Action"
+    ]
   }
 }
