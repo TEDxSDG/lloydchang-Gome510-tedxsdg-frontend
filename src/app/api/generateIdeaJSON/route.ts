@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+export async function POST(req) {
+    const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+    const data = await req.text()
+    console.log('data', data)
+    // data should be {idea:'', sdg:''}
+    const systemPrompt = `Given an idea for a nonprofit that covers the given sustainable development goal, please return the following JSON: 
+    {
+    "idea": {
+
+   "name": string that is name of the nonprofit,
+
+    "mission": string that is the mission statement,
+    "goals": string[] that is a list of goals for the nonprofit,
+    "targetMarket": {
+      "entity": string - example "Individuals and communities",
+      "ageRange": string - example "15-65",
+      "income": string - example"Low to middle income",
+      "occupation": string - example "Unemployed, underemployed, or in traditional non-sustainable industries",
+      "geography": string - example "Rural and peri-urban areas in developing countries",
+      "marginalizedIdentity": string - example "Indigenous populations, women, youth"
+    },
+    "primaryProduct": string - example "Integrated environmental education and sustainable livelihood training programs",
+    "sdgs": string[] that is list of given SDGs
+  }
+}`
+
+    const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+            {
+                role: "system",
+                content: systemPrompt
+            },
+            {
+                role: "user",
+                content: data
+            }
+        ],
+        response_format: { "type": "json_object" }
+    });
+    console.log('completion', completion.choices[0].message.content)
+    const summaries = JSON.parse(completion.choices[0].message.content);
+
+    return NextResponse.json(summaries);
+}
