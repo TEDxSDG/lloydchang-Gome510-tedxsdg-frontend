@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchLLMResults } from "@/lib/utils";
 
-export default function LLMResultsPage() {
+export default function FundingPage() {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
