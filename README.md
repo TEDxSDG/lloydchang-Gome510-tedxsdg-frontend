@@ -71,7 +71,7 @@ TEDxSDG has the potential to create significant real-world impact by:
     * **Scalability:** Meeting global demand requires robust infrastructure. We leverage serverless architecture, CDN integration, and continuous performance monitoring and optimization.
     * **Usability:** Creating intuitive interfaces requires iterative design. We employ user-centered design principles, beta testing, and ongoing user feedback integration.
 
-## Technical Implementation
+## Technical Requirements
 
 - Next.js (JavaScript front-end framework)
 - FastAPI (Python back-end framework)
