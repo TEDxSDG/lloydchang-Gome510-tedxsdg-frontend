@@ -143,6 +143,42 @@ GET https://tedxsdg-search-backend.vercel.app/api/search?query=sdg7
   * `transcript`: Transcript from the talk
   * `sdg_tags`: SDG identifier
 
+## Technical Diagram
+
+```mermaid
+graph LR
+    subgraph Client
+        A["User Interface (Next.js)"] --> B["API Requests"]
+    end
+
+    B --> C["API Gateway (FastAPI)"]
+
+    subgraph Server
+        C --> D["TEDxSDG Core Logic (FastAPI)"]
+        D --> E["TEDx Talk Data"]
+        D --> F["SDG Data"]
+        D --> G["Funding Sources Data"]
+        C --> H["TEDxSDG Search Backend (FastAPI)"]
+        H --> E
+        H --> F
+    end
+
+    subgraph AI Components
+        D --> I["Semantic Analysis (LLM)"]
+        D --> J["SDG Alignment (AI)"]
+        D --> K["Funding Discovery (LLM)"]
+    end
+
+    subgraph Infrastructure
+        Server --> L["CDN"]
+        Server --> M["Serverless Infrastructure"]
+    end
+
+    classDef api stroke:#333,stroke-width:2px;
+    class C api
+    class H api
+```
+
 ## License
 
 GNU Affero General Public License v3.0 - see LICENSE for details.
