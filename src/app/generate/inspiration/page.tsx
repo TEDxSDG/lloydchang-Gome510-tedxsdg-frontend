@@ -51,11 +51,16 @@ export default function InspirationPage() {
   const [summaries, setSummaries] = useState<Summary[]>([]);
   const [expandedSummary, setExpandedSummary] = useState<string | null>(null);
   const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
+  const [sdgSectionCollapsed, setSdgSectionCollapsed] = useState(false);
   const router = useRouter();
+  const [loading, setLoading] = useState(false)
 
   const handleSDGClick = async (sdg: SDG) => {
     setSelectedSDG(sdg);
+    setSdgSectionCollapsed(true);
+    setSummaries([]); // Clear previous summaries
     try {
+      setLoading(true)
       // First API call
       const response1 = await fetch('/api/getTedTalks', {
         method: 'POST',
@@ -63,25 +68,23 @@ export default function InspirationPage() {
         body: JSON.stringify({ text: sdg.id }),
       });
       const data1 = await response1.json();
-      console.log('res', data1)
+
 
       for (const tedTalk of data1) {
-          // Second API call using the response from the first
-          const response2 = await fetch('/api/generateIdeas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ transcript: tedTalk.transcript, sdg: tedTalk.sdg_tags[0] }),
-          });
-          const data2 = await response2.json();
-          console.log('res2', data2)
-          // TODO update summaries state
-          setSummaries(prevSummaries => [...prevSummaries, { url: tedTalk.url, summary: data2.summary, idea: data2.idea, ideaTitle: data2.ideaTitle }]);
+        // Second API call using the response from the first
+        const response2 = await fetch('/api/generateIdeas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript: tedTalk.transcript, sdg: tedTalk.sdg_tags[0] }),
+        });
+        const data2 = await response2.json();
+        setSummaries(prevSummaries => [...prevSummaries, { url: tedTalk.url, summary: data2.summary, idea: data2.idea, ideaTitle: data2.ideaTitle }]);
       }
 
-      // setApiResponse(data2.idea);
+      setLoading(false)
+
     } catch (error) {
       console.error('Error:', error);
-      // setApiResponse('An error occurred while processing your request.');
     }
   };
 
@@ -134,23 +137,33 @@ export default function InspirationPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Choose an SDG for Inspiration</h1>
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {SDGs.map((sdg) => (
-          <button
-            key={sdg.id}
-            onClick={() => handleSDGClick(sdg)}
-            className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            <Image src={sdg.icon} alt={sdg.name} width={80} height={80} />
-          </button>
-        ))}
+      <div className={`transition-all duration-300 ${sdgSectionCollapsed ? 'h-0 overflow-hidden' : 'h-auto'}`}>
+        <h1 className="text-3xl font-bold mb-6">Choose an SDG for Inspiration</h1>
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {SDGs.map((sdg) => (
+            <button
+              key={sdg.id}
+              onClick={() => handleSDGClick(sdg)}
+              className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Image src={sdg.icon} alt={sdg.name} width={80} height={80} />
+            </button>
+          ))}
+        </div>
       </div>
       {selectedSDG && (
         <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Selected SDG: {selectedSDG.name}</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Selected SDG: {selectedSDG.name}</h2>
+            <button 
+              onClick={() => setSdgSectionCollapsed(!sdgSectionCollapsed)}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              {sdgSectionCollapsed ? 'Change SDG' : 'Hide SDG Selection'}
+            </button>
+          </div>
           
-          {summaries.length > 0 ? (
+          {summaries.length > 0 && (
             <>
               <h3 className="text-xl font-semibold mb-4">Inspired Ideas from TED Talks</h3>
               <div className="space-y-4">
@@ -184,9 +197,8 @@ export default function InspirationPage() {
                 ))}
               </div>
             </>
-          ) : (
-            <p className="text-lg">Loading ideas...</p>
           )}
+          {loading && <p className="text-lg mt-4">Loading 10 ideas...</p>}
         </div>
       )}
       {editingIdea && (
