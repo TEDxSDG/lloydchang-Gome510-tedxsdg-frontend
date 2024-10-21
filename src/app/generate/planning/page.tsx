@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 // import { fetchLLMResults } from "@/lib/utils";
 
 export default function PlanningPage() {
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<string>(""); // Changed type from 'any' to 'string'
   const [loading, setLoading] = useState(true);
   const [planCollapsed, setPlanCollapsed] = useState(true)
 

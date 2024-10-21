@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import OpenAI from "openai";
 
-export async function POST(req) {
+export async function POST(req: NextRequest) {
     const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
     const data = await req.text()
     // console.log('data', data)
@@ -42,7 +42,25 @@ export async function POST(req) {
         response_format: { "type": "json_object" }
     });
     // console.log('completion', completion.choices[0].message.content)
-    const summaries = JSON.parse(completion.choices[0].message.content);
+    const content = completion.choices[0].message.content;
+
+    if (typeof content !== 'string') {
+        return NextResponse.json({ error: 'Invalid response from OpenAI' }, { status: 500 });
+    }
+
+    let summaries;
+    try {
+        summaries = JSON.parse(content);
+    } catch (error) {
+        console.error('JSON parsing error:', error);  // Log the error for server-side debugging
+
+        const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
+
+        return NextResponse.json(
+            { error: 'Failed to parse JSON response', details: errorMessage },
+            { status: 500 }
+        );
+    }
 
     return NextResponse.json(summaries);
 }

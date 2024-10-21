@@ -10,7 +10,7 @@ export default function FundingPage() {
   const [grants, setGrants] = useState<string>("");
   const [grantProposal, setGrantProposal] = useState<string>("");
   // const [pitchText, setPitchText] = useState<string>('');
-  const [pitchAudio, setPitchAudio] = useState<string | null>(null);
+  // const [pitchAudio, setPitchAudio] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [investorsCollapsed, setInvestorsCollapsed] = useState(true);
@@ -48,7 +48,7 @@ export default function FundingPage() {
           localStorage.setItem("grantResults", JSON.stringify(grantData));
           setGrants(grantData);
 
-          // fetch grant proposal
+          // Fetch grant proposal
           const grantProposalResponse = await fetch(
             "https://ted-murex.vercel.app/getGrantProposal",
             {
@@ -109,7 +109,7 @@ export default function FundingPage() {
       const htmlContent = marked.parse(grantProposal);
       
       // Remove HTML tags to get plain text
-      const plainText = htmlContent.replace(/<[^>]+>/g, '');
+      const plainText = (htmlContent as string).replace(/<[^>]+>/g, '');
       
       // Split the content into lines
       const lines = doc.splitTextToSize(plainText, 180);
@@ -235,14 +235,14 @@ export default function FundingPage() {
         )}
       </div> */}
 
-      {pitchAudio && (
+      {/* {pitchAudio && (
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-4">Pitch Audio</h2>
           <audio controls src={pitchAudio}>
             Your browser does not support the audio element.
           </audio>
         </div>
-      )}
+      )} */}
 
       <div className="flex space-x-4">
         <button

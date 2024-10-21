@@ -59,7 +59,7 @@ export default function Home() {
             <>
               <h2 className="text-4xl font-bold mb-4 text-red-600">Welcome to TEDxSDG</h2>
               <p className="text-xl mb-8">
-                At TEDxSDG, we make turning your ideas into action seamless. Whether you're inspired by a specific SDG goal or have an idea of your own, our platform guides you through three key steps: Inspiration, Planning, and Funding.
+                At TEDxSDG, we make turning your ideas into action seamless. Whether you&apos;re inspired by a specific SDG goal or have an idea of your own, our platform guides you through three key steps: Inspiration, Planning, and Funding.
               </p>
               <p className="text-xl mb-8">
                 Start by submitting your idea or exploring SDG goals for inspiration. Our AI will then create a tailored business plan, complete with investor connections, a professional pitch deck, and grant proposal resources. Everything you need to bring your vision to life is just a few clicks away!
