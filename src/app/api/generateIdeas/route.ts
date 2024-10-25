@@ -1,23 +1,35 @@
 // File: src/app/api/generateIdeas/route.ts
 import { NextResponse, NextRequest } from "next/server";
-import Groq from 'groq-sdk';
+import OpenAI from "openai";
 
-const groqApiKey = process.env.GROQ_API_KEY;
-if (!groqApiKey) {
-    console.error("GROQ_API_KEY environment variable not set!");
+const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+if (!openRouterApiKey) {
+    console.error("OPENROUTER_API_KEY environment variable not set!");
     // In production, you should throw an error or return a default response here.
 }
 
-const groq = new Groq({ apiKey: groqApiKey });
+const openai = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: openRouterApiKey,
+    defaultHeaders: { // Required for OpenRouter; adjust if necessary for your setup
+      "HTTP-Referer": process.env.YOUR_SITE_URL || "", // Replace with your site URL
+      "X-Title": process.env.YOUR_SITE_NAME || "",       // Replace with your site name
+    }
+});
+
+
 
 export async function POST(req: NextRequest) {
     try {
         const data = await req.json();
-        console.debug(`Incoming data (generateIdeas):`, data);
+        console.log("Incoming data (generateIdeas):", data);
+        console.log("Data types:", typeof data, typeof data.transcript, typeof data.sdg);
+
 
         if (!data || typeof data !== 'object' || !data.transcript || !data.sdg) {
             return NextResponse.json({ error: "Invalid input data. 'transcript' and 'sdg' are required." }, { status: 400 });
         }
+
 
         let sdgNumber;
         if (typeof data.sdg === 'string') {
@@ -25,6 +37,7 @@ export async function POST(req: NextRequest) {
         } else if (typeof data.sdg === 'number') {
             sdgNumber = data.sdg;
         }
+
 
         if (isNaN(sdgNumber) || sdgNumber < 1 || sdgNumber > 17) {
            return NextResponse.json({ error: "Invalid 'sdg' value. Must be a number between 1 and 17." }, { status: 400 });
@@ -44,26 +57,33 @@ Valid JSON Response Format:
   "idea": "string",
   "ideaTitle": "string"
 }
-        `;
+        `; // Strict prompt with JSON example
+
+        console.log("Prompt sent to Gemma:", systemPrompt);
 
         try {
-            console.debug("About to call Groq API...");
-            const completion = await groq.chat.completions.create({
-                model: "gemma2-9b-it", // Or the correct Gemma model string
+            console.log("About to call Gemma API via OpenRouter...");
+            const completion = await openai.chat.completions.create({ // Gemma via OpenRouter
+                model: "google/gemma-2-9b-it:free",  // Or the correct Gemma model string
                 messages: [{ role: "system", content: systemPrompt }]
             });
-            console.debug("Groq API call successful.");
+            console.log("Gemma API call successful.");
 
-            if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
-                console.error("Invalid response from Groq:", completion);
-                return NextResponse.json({ error: "Invalid response from Groq" }, { status: 500 });
+            console.log("Raw OpenRouter response:", completion); // Log the entire response object
+
+
+             if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
+                console.error("Invalid response from Gemma via OpenRouter:", completion);
+                return NextResponse.json({ error: "Invalid response from Gemma" }, { status: 500 });
             }
 
+
             let content = completion.choices[0].message.content;
+            console.log("Extracted content from Gemma:", content);
+
 
             try {
-                const jsonResponse = JSON.parse(content);
-                console.debug("Returning JSON response:", jsonResponse);
+                const jsonResponse = JSON.parse(content); // Attempt direct parse
                 return NextResponse.json(jsonResponse);
             } catch (parseError) {
                 console.error("Initial JSON parsing failed:", parseError);
@@ -79,8 +99,9 @@ Valid JSON Response Format:
                 } catch (cleanedParseError) {
                     console.error("Parsing failed even after removing backticks:", cleanedParseError);
 
+
                     try { // Regex fallback (optional, but recommended for robustness)
-                        const regex = /{.*}/s;
+                        const regex = /{.*}/s; // Regex to extract JSON
                         const match = content.match(regex);
 
                         if (match) {
@@ -99,10 +120,12 @@ Valid JSON Response Format:
                 }
             }
 
-        } catch (groqError) {
-           console.error("Groq Error:", groqError);
-           return NextResponse.json({ error: "An error occurred while contacting Groq" }, { status: 500 });
+
+        } catch (openRouterError) {
+           console.error("OpenRouter Error:", openRouterError);
+           return NextResponse.json({ error: "An error occurred while contacting OpenRouter" }, { status: 500 });
         }
+
 
     } catch (outerError) {
        console.error("General Error:", outerError);
