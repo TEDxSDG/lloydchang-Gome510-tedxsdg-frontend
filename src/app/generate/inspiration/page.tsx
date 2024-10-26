@@ -62,22 +62,29 @@ export default function InspirationPage() {
     try {
       setLoading(true)
       // First API call
-      const response1 = await fetch('/api/getTedTalks', {
+      const request1 = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: sdg.id }),
-      });
+      };
+      console.debug('API Request (getTedTalks):', request1);
+      const response1 = await fetch('/api/getTedTalks', request1);
+      console.debug('API Response (getTedTalks) Status:', response1.status);
       const data1 = await response1.json();
-
+      console.debug('API Response (getTedTalks) Data:', data1);
 
       for (const tedTalk of data1) {
         // Second API call using the response from the first
-        const response2 = await fetch('/api/generateIdeas', {
+        const request2 = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ transcript: tedTalk.transcript, sdg: tedTalk.sdg_tags[0] }),
-        });
+        };
+        console.debug('API Request (generateIdeas):', request2);
+        const response2 = await fetch('/api/generateIdeas', request2);
+        console.debug('API Response (generateIdeas) Status:', response2.status);
         const data2 = await response2.json();
+        console.debug('API Response (generateIdeas) Data:', data2);
         setSummaries(prevSummaries => [...prevSummaries, { url: tedTalk.url, summary: data2.summary, idea: data2.idea, ideaTitle: data2.ideaTitle }]);
       }
 
@@ -117,7 +124,7 @@ export default function InspirationPage() {
     localStorage.setItem('ideas', JSON.stringify(updatedIdeas));
 
     // get idea JSON
-    const response = await fetch('/api/generateIdeaJSON', {
+    const request3 = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -125,18 +132,24 @@ export default function InspirationPage() {
         ideaTitle: newIdea.ideaTitle,
         sdg: newIdea.sdg
       }),
-    });
+    };
+    console.debug('API Request (generateIdeaJSON):', request3);
+    const response = await fetch('/api/generateIdeaJSON', request3);
+    console.debug('API Response (generateIdeaJSON) Status:', response.status);
     const data = await response.json();
-    console.log('res', data);
+    console.debug('API Response (generateIdeaJSON) Data:', data);
 
     // TODO --- send JSON to planning api endpoint
-    const planningResponse = await fetch('https://ted-murex.vercel.app/business_plan_roadmap', {
+    const request4 = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-    });
+    };
+    console.debug('API Request (business_plan_roadmap):', request4);
+    const planningResponse = await fetch('https://ted-murex.vercel.app/business_plan_roadmap', request4);
+    console.debug('API Response (business_plan_roadmap) Status:', planningResponse.status);
     const planningData = await planningResponse.json();
-    console.log('planningData', planningData);
+    console.debug('API Response (business_plan_roadmap) Data:', planningData);
     localStorage.setItem('planningResults', JSON.stringify(planningData));
     
     // Navigate to the next page
