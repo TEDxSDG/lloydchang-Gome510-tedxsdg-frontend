@@ -1,3 +1,4 @@
+// File: src/app/generate/inspiration/page.tsx
 'use client'
 
 import { useState } from 'react';
