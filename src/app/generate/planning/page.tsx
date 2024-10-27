@@ -1,3 +1,4 @@
+// File: src/app/generate/planning/page.tsx
 "use client";
 
 import { marked } from "marked";
@@ -23,20 +24,20 @@ export default function PlanningPage() {
         try {
           // const newResults = await fetchLLMResults();
           // Fetch business plans
-          // const grantResponse = await fetch(
-          //   "https://ted-murex.vercel.app/business_plan_roadmap",
-          //   {
-          //     method: "POST",
-          //     headers: { "Content-Type": "application/json" },
-          //     body: JSON.stringify(request),
-          //   }
-          // );
-          // const grantData = await grantResponse.json();
-          // localStorage.setItem("grantResults", JSON.stringify(grantData));
-          // setGrants(grantData);
-          // // Store the new results in local storage
-          // localStorage.setItem("llmResults", JSON.stringify(newResults));
-          // setResults(newResults);
+          const grantResponse = await fetch(
+            "https://ted-murex.vercel.app/business_plan_roadmap",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(request),
+            }
+          );
+          const grantData = await grantResponse.json();
+          localStorage.setItem("grantResults", JSON.stringify(grantData));
+          setGrants(grantData);
+          // Store the new results in local storage
+          localStorage.setItem("llmResults", JSON.stringify(newResults));
+          setResults(newResults);
         } catch (error) {
           console.error("Error fetching LLM results:", error);
         } finally {
