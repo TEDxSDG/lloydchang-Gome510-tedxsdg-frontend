@@ -32,18 +32,22 @@ export default function PlanningPage() {
         try {
           // const newResults = await fetchLLMResults();
           // Fetch business plans
+
+          // Store the request method
+          const requestMethod = "POST";
+
           const grantResponse = await fetch(
             "https://ted-murex.vercel.app/business_plan_roadmap",
             {
-              method: "POST",
+              method: requestMethod, // Use the stored method
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(request),
             }
           );
 
-          // Log request details
+          // Log request details (use the stored requestMethod)
           console.debug("Business Plan Request:", {
-            method: grantResponse.method,
+            method: requestMethod,
             url: grantResponse.url,
             headers: grantResponse.headers,
             body: request,
