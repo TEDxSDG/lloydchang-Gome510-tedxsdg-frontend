@@ -36,48 +36,101 @@ export default function FundingPage() {
       } else {
         // If no cached results, make the API call
         try {
-          // Fetch grants
+          // Fetch data
           const selectedIdea = JSON.parse(localStorage.getItem("selectedIdea") || "{}");
-          const ideaJSONRequest = {
+
+          // Extract the SDG number (e.g., "sdg12")
+          const sdgNumber = selectedIdea.sdg.split(':')[0].trim();
+
+          // Consistent Payload Structure for All Requests
+          const requestPayload = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              idea: selectedIdea.idea,
-              ideaTitle: selectedIdea.ideaTitle,
-              sdg: selectedIdea.sdg,
+              idea: {
+                name: selectedIdea.ideaTitle,
+                mission: selectedIdea.idea,
+                goals: [],
+                targetMarket: {},
+                primaryProduct: "",
+                geography: {},
+                keyPrograms: [],
+                sdgs: [sdgNumber],
+              },
             }),
           };
+
+          // Fetch Grants
+          console.debug("Grant Info Request Headers:", requestPayload.headers);
+          console.debug("Grant Info Request Body:", requestPayload.body);
+
           const grantResponse = await fetch(
             "https://ted-murex.vercel.app/grantInfo",
-            {
-              ...ideaJSONRequest,
-            }
+            requestPayload
           );
-          const grantData = await grantResponse.json();
-          localStorage.setItem("grantResults", JSON.stringify(grantData));
-          setGrants(grantData);
 
-          // Fetch grant proposal
+          console.debug("Grant Info Response Status:", grantResponse.status);
+          console.debug("Grant Info Response Headers:", grantResponse.headers);
+
+          if (grantResponse.ok) {
+            // Get text response directly
+            const grantsText = await grantResponse.text();
+            console.debug("Grant Info Response Body:", grantsText);
+
+            localStorage.setItem("grantResults", JSON.stringify(grantsText));
+            setGrants(grantsText);
+          } else {
+            console.error("Error fetching grants:", grantResponse.statusText);
+            setGrants("Error loading grant information. Please try again later.");
+          }
+
+          // Fetch Grant Proposal
+          console.debug("Grant Proposal Request Headers:", requestPayload.headers);
+          console.debug("Grant Proposal Request Body:", requestPayload.body);
+
           const grantProposalResponse = await fetch(
             "https://ted-murex.vercel.app/getGrantProposal",
-            {
-              ...ideaJSONRequest,
-            }
+            requestPayload
           );
-          const grantProposalData = await grantProposalResponse.json();
-          localStorage.setItem("grantProposalResults", JSON.stringify(grantProposalData));
-          setGrantProposal(grantProposalData);
 
-          // Fetch investors
+          console.debug("Grant Proposal Response Status:", grantProposalResponse.status);
+          console.debug("Grant Proposal Response Headers:", grantProposalResponse.headers);
+
+          if (grantProposalResponse.ok) {
+            // Get text response directly
+            const grantProposalText = await grantProposalResponse.text();
+            console.debug("Grant Proposal Response Body:", grantProposalText);
+
+            localStorage.setItem("grantProposalResults", JSON.stringify(grantProposalText));
+            setGrantProposal(grantProposalText);
+          } else {
+            console.error("Error fetching grant proposal:", grantProposalResponse.statusText);
+            setGrantProposal("Error loading grant proposal. Please try again later.");
+          }
+
+          // Fetch Investors
+          console.debug("Investors Request Headers:", requestPayload.headers);
+          console.debug("Investors Request Body:", requestPayload.body);
+
           const investorResponse = await fetch(
             "https://ted-murex.vercel.app/investors",
-            {
-              ...ideaJSONRequest,
-            }
+            requestPayload
           );
-          const investorData = await investorResponse.json();
-          localStorage.setItem("investorResults", JSON.stringify(investorData));
-          setInvestors(investorData);
+
+          console.debug("Investors Response Status:", investorResponse.status);
+          console.debug("Investors Response Headers:", investorResponse.headers);
+
+          if (investorResponse.ok) {
+            // Get text response directly
+            const investorsText = await investorResponse.text();
+            console.debug("Investors Response Body:", investorsText);
+
+            localStorage.setItem("investorResults", JSON.stringify(investorsText));
+            setInvestors(investorsText);
+          } else {
+            console.error("Error fetching investors:", investorResponse.statusText);
+            setInvestors("Error loading investor information. Please try again later.");
+          }
 
           // Fetch pitch
           // const pitchTextResponse = await fetch(
@@ -93,9 +146,12 @@ export default function FundingPage() {
           // localStorage.setItem("pitchTextResults", JSON.stringify(pitchTextData.pitch_text));
           // setPitchText(pitchTextData.pitch_text);
 
-
         } catch (error) {
           console.error("Error fetching results:", error);
+          // Handle errors more generally
+          setInvestors("An error occurred. Please try again later.");
+          setGrants("An error occurred. Please try again later.");
+          setGrantProposal("An error occurred. Please try again later.");
         } finally {
           setLoading(false);
         }
@@ -109,16 +165,16 @@ export default function FundingPage() {
     setGeneratingPDF(true);
     try {
       const doc = new jsPDF();
-      
+
       // Convert markdown to HTML
       const htmlContent = marked.parse(grantProposal);
-      
+
       // Remove HTML tags to get plain text
-      const plainText = (htmlContent as string).replace(/<[^>]+>/g, '');
-      
+      const plainText = (htmlContent as string).replace(/<[^>]+>/g, "");
+
       // Split the content into lines
       const lines = doc.splitTextToSize(plainText, 180);
-      
+
       let y = 10;
       lines.forEach((line: string) => {
         if (y > 280) {
@@ -129,19 +185,19 @@ export default function FundingPage() {
         y += 7;
       });
 
-      doc.save('grant_proposal.pdf');
+      doc.save("grant_proposal.pdf");
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
     } finally {
       setGeneratingPDF(false);
     }
   };
 
-  const toggleSection = (section: 'investors' | 'grants' | 'pitch') => {
-    if (section === 'investors') {
+  const toggleSection = (section: "investors" | "grants" | "pitch") => {
+    if (section === "investors") {
       setInvestorsCollapsed(!investorsCollapsed);
-    } else if (section === 'grants') {
+    } else if (section === "grants") {
       setGrantsCollapsed(!grantsCollapsed);
     }
     // else {
@@ -193,6 +249,21 @@ export default function FundingPage() {
     return <div>Loading...</div>;
   }
 
+  // Function to format the text from API
+  const formatApiResponse = (text: string) => {
+    // Replace '\n' with '<br/>' for single line breaks
+    // Replace '\n\n' with '<br/><br/>' for double line breaks
+    const formattedText = text.replace(/\n/g, '<br/>').replace(/\n\n/g, '<br/><br/>');
+
+    // Bold the "Citations" section
+    const boldedCitations = formattedText.replace(
+      /(Citations:)/g,
+      '**$1**' 
+    );
+
+    return marked.parse(boldedCitations); // Parse the markdown
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -205,7 +276,8 @@ export default function FundingPage() {
         </button>
         {!investorsCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
-            <div dangerouslySetInnerHTML={{ __html: marked.parse(investors) }}></div>
+            {/* Render formatted investor text */}
+            <div dangerouslySetInnerHTML={{ __html: formatApiResponse(investors) }}></div> 
           </div>
         )}
       </div>
@@ -220,7 +292,8 @@ export default function FundingPage() {
         </button>
         {!grantsCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
-            <div dangerouslySetInnerHTML={{ __html: marked.parse(grants) }}></div>
+            {/* Render formatted grant text */}
+            <div dangerouslySetInnerHTML={{ __html: formatApiResponse(grants) }}></div> 
           </div>
         )}
       </div>
