@@ -2,9 +2,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import request from "./request.json";
+// import request from "./request.json"; // No longer needed, using idea JSON
 import { marked } from "marked";
-import jsPDF from 'jspdf';
+import jsPDF from "jspdf";
 
 export default function FundingPage() {
   const [investors, setInvestors] = useState<string>("");
@@ -37,12 +37,20 @@ export default function FundingPage() {
         // If no cached results, make the API call
         try {
           // Fetch grants
+          const selectedIdea = JSON.parse(localStorage.getItem("selectedIdea") || "{}");
+          const ideaJSONRequest = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              idea: selectedIdea.idea,
+              ideaTitle: selectedIdea.ideaTitle,
+              sdg: selectedIdea.sdg,
+            }),
+          };
           const grantResponse = await fetch(
             "https://ted-murex.vercel.app/grantInfo",
             {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(request),
+              ...ideaJSONRequest,
             }
           );
           const grantData = await grantResponse.json();
@@ -53,9 +61,7 @@ export default function FundingPage() {
           const grantProposalResponse = await fetch(
             "https://ted-murex.vercel.app/getGrantProposal",
             {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(request),
+              ...ideaJSONRequest,
             }
           );
           const grantProposalData = await grantProposalResponse.json();
@@ -66,9 +72,7 @@ export default function FundingPage() {
           const investorResponse = await fetch(
             "https://ted-murex.vercel.app/investors",
             {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(request),
+              ...ideaJSONRequest,
             }
           );
           const investorData = await investorResponse.json();
