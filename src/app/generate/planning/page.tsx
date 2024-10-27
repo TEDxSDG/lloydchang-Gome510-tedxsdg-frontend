@@ -5,17 +5,25 @@ import { marked } from "marked";
 import React, { useState, useEffect } from "react";
 // import { fetchLLMResults } from "@/lib/utils";
 
+// Define a request object with default values
+const request = {
+  businessName: "",
+  industry: "",
+  goals: "",
+};
+
 export default function PlanningPage() {
   const [results, setResults] = useState<string>(""); // Changed type from 'any' to 'string'
   const [loading, setLoading] = useState(true);
-  const [planCollapsed, setPlanCollapsed] = useState(true)
+  const [planCollapsed, setPlanCollapsed] = useState(true);
+  // const [grants, setGrants] = useState<any>(null); // Replace 'any' with the actual type of your grant data
 
   useEffect(() => {
     const fetchData = async () => {
       // Check if we have cached results in local storage
       const cachedResults = localStorage.getItem("planningResults");
 
-      if (cachedResults && cachedResults !== "undefined") {
+      if (cachedResults && cachedResults !== "undefined" && typeof cachedResults === 'string') {
         // If we have cached results, use them
         setResults(JSON.parse(cachedResults));
         setLoading(false);
@@ -33,11 +41,23 @@ export default function PlanningPage() {
             }
           );
           const grantData = await grantResponse.json();
-          localStorage.setItem("grantResults", JSON.stringify(grantData));
-          setGrants(grantData);
+
+          // Check if the API response contains the markdown content
+          if (grantData.businessPlanMarkdown) {
+            const markdownString = grantData.businessPlanMarkdown; 
+            setResults(markdownString); 
+            localStorage.setItem("planningResults", JSON.stringify(markdownString));
+            localStorage.setItem("grantResults", JSON.stringify(grantData));
+            // setGrants(grantData); 
+          } else {
+            console.error("Error: Markdown content not found in API response");
+            // Set an error message if markdown is not found
+            setResults("Error loading business plan. Please try again later."); 
+          }
+          
           // Store the new results in local storage
-          localStorage.setItem("llmResults", JSON.stringify(newResults));
-          setResults(newResults);
+          // localStorage.setItem("llmResults", JSON.stringify(newResults));
+          // setResults(newResults);
         } catch (error) {
           console.error("Error fetching LLM results:", error);
         } finally {
@@ -65,10 +85,24 @@ export default function PlanningPage() {
         </button>
         {!planCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
-            <div dangerouslySetInnerHTML={{ __html: marked.parse(results) }}></div>
+            {/* Check if 'results' is a string before rendering it as markdown */}
+            {typeof results === 'string' ? ( 
+              <div dangerouslySetInnerHTML={{ __html: marked.parse(results) }}></div>
+            ) : (
+              <div>Error: Invalid data format for business plan.</div> 
+            )}
           </div>
         )}
       </div>
+
+      {/* You can use the 'grants' state here to display grant information */}
+      {/* Example: */}
+      {/* {grants && (
+        <div>
+          <h2>Available Grants:</h2>
+          {/* ... Display grant details from 'grants' ... */} 
+        {/* </div>
+      )} */}
     </div>
   );
 }
