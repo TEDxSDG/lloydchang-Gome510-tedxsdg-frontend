@@ -13,7 +13,7 @@ const request = {
 };
 
 export default function PlanningPage() {
-  const [results, setResults] = useState<string>(""); // Changed type from 'any' to 'string'
+  const [results, setResults] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [planCollapsed, setPlanCollapsed] = useState(true);
   // const [grants, setGrants] = useState<any>(null); // Replace 'any' with the actual type of your grant data
@@ -40,7 +40,24 @@ export default function PlanningPage() {
               body: JSON.stringify(request),
             }
           );
+
+          // Log request details
+          console.debug("Business Plan Request:", {
+            method: grantResponse.method,
+            url: grantResponse.url,
+            headers: grantResponse.headers,
+            body: request,
+          });
+
           const grantData = await grantResponse.json();
+
+          // Log response details
+          console.debug("Business Plan Response:", {
+            status: grantResponse.status,
+            statusText: grantResponse.statusText,
+            headers: grantResponse.headers,
+            body: grantData,
+          });
 
           // Check if the API response contains the markdown content
           if (grantData.businessPlanMarkdown) {
