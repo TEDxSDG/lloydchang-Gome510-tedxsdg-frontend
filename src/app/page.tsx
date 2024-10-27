@@ -1,6 +1,8 @@
+// File: src/app/page.tsx
 'use client'
 import { useEffect, useState } from 'react';
 import Link from "next/link";
+import { TrashIcon } from '@heroicons/react/24/solid';
 
 interface Idea {
   idea: string;
@@ -19,6 +21,12 @@ export default function Home() {
     }
   }, []);
 
+  const handleDeleteProject = (url: string) => {
+    const updatedProjects = projects.filter((project) => project.url !== url);
+    setProjects(updatedProjects);
+    localStorage.setItem('ideas', JSON.stringify(updatedProjects));
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white text-black bg-[url('/assets/SDGs-Colours.png')] bg-cover bg-center bg-no-repeat">
       {/* Header */}
@@ -34,7 +42,7 @@ export default function Home() {
               <h2 className="text-4xl font-bold mb-4 text-red-600">Your Projects</h2>
               <ul className="mb-8">
                 {projects.map((project) => (
-                  <li key={project.url} className="mb-2">
+                  <li key={project.url} className="mb-2 flex items-center justify-between">
                     <Link 
                       href={`/generate/planning`} 
                       className="text-blue-600 hover:underline"
@@ -44,6 +52,12 @@ export default function Home() {
                     >
                       {project.ideaTitle}
                     </Link>
+                    <button 
+                      onClick={() => handleDeleteProject(project.url!)} 
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
                   </li>
                 ))}
               </ul>
