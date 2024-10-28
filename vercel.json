@@ -1,18 +1,18 @@
 {
   "functions": {
-    "pages": {
+    "pages/**/[!_]*.+(js|jsx|ts|tsx)": {
       "memory": 1024,
       "maxDuration": 60
     },
-    "pages/api": {
+    "pages/api/**/[!_]*.+(js|jsx|ts|tsx)": {
       "memory": 1024,
       "maxDuration": 60
     },
-    "src/pages": {
+    "src/pages/**/[!_]*.+(js|jsx|ts|tsx)": {
       "memory": 1024,
       "maxDuration": 60
     },
-    "src/pages/api": {
+    "src/pages/api/**/[!_]*.+(js|jsx|ts|tsx)": {
       "memory": 1024,
       "maxDuration": 60
     }
