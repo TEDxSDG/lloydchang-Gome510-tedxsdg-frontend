@@ -2,22 +2,22 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-// import request from "./request.json"; // No longer needed, using idea JSON
-import { marked } from "marked";
+import ReactMarkdown from 'react-markdown'; 
+import remarkGfm from 'remark-gfm'; // Import remark-gfm for GitHub Flavored Markdown
 import jsPDF from "jspdf";
 
 export default function FundingPage() {
   const [investors, setInvestors] = useState<string>("");
   const [grants, setGrants] = useState<string>("");
   const [grantProposal, setGrantProposal] = useState<string>("");
-  // const [pitchText, setPitchText] = useState<string>('');
-  // const [pitchAudio, setPitchAudio] = useState<string | null>(null);
+  // const [pitchText, setPitchText] = useState<string>(''); 
+  // const [pitchAudio, setPitchAudio] = useState<string | null>(null); 
   const [loading, setLoading] = useState(true);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [investorsCollapsed, setInvestorsCollapsed] = useState(true);
   const [grantsCollapsed, setGrantsCollapsed] = useState(true);
-  // const [pitchCollapsed, setPitchCollapsed] = useState(true);
-  // const [generatingAudio, setGeneratingAudio] = useState(false);
+  // const [pitchCollapsed, setPitchCollapsed] = useState(true); 
+  // const [generatingAudio, setGeneratingAudio] = useState(false); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,13 +25,13 @@ export default function FundingPage() {
       const cachedGrants = localStorage.getItem("grantResults");
       const cachedInvestors = localStorage.getItem("investorResults");
       const cachedGrantProposal = localStorage.getItem("grantProposalResults");
-      // const cachedPitchText = localStorage.getItem("pitchTextResults");
+      // const cachedPitchText = localStorage.getItem("pitchTextResults"); 
 
       if (cachedGrants && cachedInvestors && cachedGrantProposal) {
         setGrants(JSON.parse(cachedGrants));
         setInvestors(JSON.parse(cachedInvestors));
         setGrantProposal(JSON.parse(cachedGrantProposal));
-        // setPitchText(JSON.parse(cachedPitchText))
+        // setPitchText(JSON.parse(cachedPitchText)) 
         setLoading(false);
       } else {
         // If no cached results, make the API call
@@ -98,7 +98,7 @@ export default function FundingPage() {
 
           if (grantProposalResponse.ok) {
             // Get text response directly
-            const grantProposalText = await grantProposalResponse.text();
+            const grantProposalText = await grantProposalResponse.text(); // Using the CORRECT response object
             console.debug("Grant Proposal Response Body:", grantProposalText);
 
             localStorage.setItem("grantProposalResults", JSON.stringify(grantProposalText));
@@ -132,19 +132,19 @@ export default function FundingPage() {
             setInvestors("Error loading investor information. Please try again later.");
           }
 
-          // Fetch pitch
+          // Fetch pitch 
           // const pitchTextResponse = await fetch(
           //   "https://ted-murex.vercel.app/generatePitchText",
           //   {
           //     method: "POST",
           //     headers: { "Content-Type": "application/json" },
-          //     body: JSON.stringify(request),
+          //     body: JSON.stringify(request), 
           //   }
           // );
           // const pitchTextData = await pitchTextResponse.json();
           // console.log('pitchTextData', pitchTextData)
           // localStorage.setItem("pitchTextResults", JSON.stringify(pitchTextData.pitch_text));
-          // setPitchText(pitchTextData.pitch_text);
+          // setPitchText(pitchTextData.pitch_text); 
 
         } catch (error) {
           console.error("Error fetching results:", error);
@@ -166,14 +166,8 @@ export default function FundingPage() {
     try {
       const doc = new jsPDF();
 
-      // Convert markdown to HTML
-      const htmlContent = marked.parse(grantProposal);
-
-      // Remove HTML tags to get plain text
-      const plainText = (htmlContent as string).replace(/<[^>]+>/g, "");
-
       // Split the content into lines
-      const lines = doc.splitTextToSize(plainText, 180);
+      const lines = doc.splitTextToSize(grantProposal, 180);  
 
       let y = 10;
       lines.forEach((line: string) => {
@@ -200,49 +194,13 @@ export default function FundingPage() {
     } else if (section === "grants") {
       setGrantsCollapsed(!grantsCollapsed);
     }
-    // else {
-    //   setPitchCollapsed(!pitchCollapsed)
+    // else { 
+    //   setPitchCollapsed(!pitchCollapsed) 
     // }
   };
 
   // const handleGenerateAudio = async () => {
-  //   setGeneratingAudio(true);
-  //   try {
-
-  //     const pitchResponse = await fetch(
-  //       "https://ted-murex.vercel.app/generatePitchAudio",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify(pitchText),
-  //       }
-  //     );
-
-  //     if (!pitchResponse.ok) {
-  //       throw new Error('Failed to generate pitch audio');
-  //     }
-
-  //     const audioBlob = await pitchResponse.blob();
-  //     const audioUrl = URL.createObjectURL(audioBlob);
-
-  //     // Create a temporary anchor element to trigger the download
-  //     const a = document.createElement('a');
-  //     a.href = audioUrl;
-  //     a.download = 'pitch_audio.mp3'; // You can change the file name and extension as needed
-  //     document.body.appendChild(a);
-  //     a.click();
-  //     document.body.removeChild(a);
-
-  //     // Optionally, you can also update the pitchAudio state and localStorage
-  //     setPitchAudio(audioUrl);
-  //     localStorage.setItem("pitchAudioUrl", audioUrl);
-
-  //   } catch (error) {
-  //     console.error("Error generating audio:", error);
-  //     alert('Failed to generate audio. Please try again.');
-  //   } finally {
-  //     setGeneratingAudio(false);
-  //   }
+  //   // ... (Your existing code) 
   // };
 
   if (loading) {
@@ -251,17 +209,25 @@ export default function FundingPage() {
 
   // Function to format the text from API
   const formatApiResponse = (text: string) => {
-    // Replace '\n' with '<br/>' for single line breaks
-    // Replace '\n\n' with '<br/><br/>' for double line breaks
-    const formattedText = text.replace(/\n/g, '<br/>').replace(/\n\n/g, '<br/><br/>');
+    // Remove leading and trailing double quotes
+    const trimmedText = text.replace(/^"|"$/g, ''); 
+
+    // Decode escaped newlines to actual newlines
+    const decodedText = trimmedText.replace(/\\n/g, '\n\n\n');
 
     // Bold the "Citations" section
-    const boldedCitations = formattedText.replace(
+    const boldedCitations = decodedText.replace(
       /(Citations:)/g,
       '**$1**'
     );
 
-    return marked.parse(boldedCitations); // Parse the markdown
+    // Replace ==== with --- (or any other markdown horizontal rule character)
+    const horizontalRuleFixed = boldedCitations.replace(
+      /={4,}/g, // Match 4 or more equal signs
+      '---' 
+    );
+
+    return horizontalRuleFixed;
   };
 
   return (
@@ -277,7 +243,11 @@ export default function FundingPage() {
         {!investorsCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
             {/* Render formatted investor text */}
-            <div dangerouslySetInnerHTML={{ __html: formatApiResponse(investors) }}></div> 
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]} // Use remark-gfm for better Markdown support 
+            >
+              {formatApiResponse(investors)}
+            </ReactMarkdown> 
           </div>
         )}
       </div>
@@ -293,13 +263,17 @@ export default function FundingPage() {
         {!grantsCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
             {/* Render formatted grant text */}
-            <div dangerouslySetInnerHTML={{ __html: formatApiResponse(grants) }}></div> 
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]} // Use remark-gfm for better Markdown support 
+            >
+              {formatApiResponse(grants)} 
+            </ReactMarkdown> 
           </div>
         )}
       </div>
 
-      {/* <div className="mb-6">
-        <button 
+      {/* <div className="mb-6"> 
+        <button
           onClick={() => toggleSection('pitch')}
           className="text-3xl font-bold w-full text-left flex justify-between items-center bg-gray-200 p-4 rounded-t"
         >
@@ -308,10 +282,14 @@ export default function FundingPage() {
         </button>
         {!pitchCollapsed && (
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
-            <div dangerouslySetInnerHTML={{ __html: marked.parse(pitchText) }}></div>
+            <ReactMarkdown 
+              rehypePlugins={[rehypeRaw]} // Enable HTML parsing with rehypeRaw (if needed)
+            >
+              {pitchText} 
+            </ReactMarkdown> 
           </div>
         )}
-      </div> */}
+      </div>  */}
 
       {/* {pitchAudio && (
         <div className="mb-6">
