@@ -54,14 +54,14 @@ export default function InspirationPage() {
   const [editingIdea, setEditingIdea] = useState<Idea | null>(null);
   const [sdgSectionCollapsed, setSdgSectionCollapsed] = useState(false);
   const router = useRouter();
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   const handleSDGClick = async (sdg: SDG) => {
     setSelectedSDG(sdg);
     setSdgSectionCollapsed(true);
     setSummaries([]); // Clear previous summaries
     try {
-      setLoading(true)
+      setLoading(true);
       // First API call
       const request1 = {
         method: 'POST',
@@ -74,23 +74,34 @@ export default function InspirationPage() {
       const data1 = await response1.json();
       console.debug('API Response (getTedTalks) Data:', data1);
 
-      for (const tedTalk of data1) {
-        // Second API call using the response from the first
-        const request2 = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transcript: tedTalk.transcript, sdg: tedTalk.sdg_tags[0] }),
-        };
-        console.debug('API Request (generateIdeas):', request2);
-        const response2 = await fetch('/api/generateIdeas', request2);
-        console.debug('API Response (generateIdeas) Status:', response2.status);
-        const data2 = await response2.json();
-        console.debug('API Response (generateIdeas) Data:', data2);
-        setSummaries(prevSummaries => [...prevSummaries, { url: tedTalk.url, summary: data2.summary, idea: data2.idea, ideaTitle: data2.ideaTitle }]);
-      }
+      // Use only the first TED talk from the response
+      const firstTedTalk = data1[0];
 
-      setLoading(false)
+      // Second API call using the first TED talk
+      const request2 = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transcript: firstTedTalk.transcript,
+          sdg: firstTedTalk.sdg_tags[0],
+        }),
+      };
+      console.debug('API Request (generateIdeas):', request2);
+      const response2 = await fetch('/api/generateIdeas', request2);
+      console.debug('API Response (generateIdeas) Status:', response2.status);
+      const data2 = await response2.json();
+      console.debug('API Response (generateIdeas) Data:', data2);
 
+      setSummaries([
+        {
+          url: firstTedTalk.url,
+          summary: data2.summary,
+          idea: data2.idea,
+          ideaTitle: data2.ideaTitle,
+        },
+      ]);
+
+      setLoading(false);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -104,7 +115,7 @@ export default function InspirationPage() {
     setEditingIdea({
       idea: summary.idea,
       ideaTitle: summary.ideaTitle,
-      url: summary.url
+      url: summary.url,
     });
   };
 
@@ -113,7 +124,7 @@ export default function InspirationPage() {
 
     const newIdea: Idea = {
       ...editingIdea,
-      sdg: selectedSDG ? `${selectedSDG.id}: ${selectedSDG.name}` : ''
+      sdg: selectedSDG ? `${selectedSDG.id}: ${selectedSDG.name}` : '',
     };
 
     // Save the idea to localStorage
@@ -128,10 +139,10 @@ export default function InspirationPage() {
     const request3 = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        idea: newIdea.idea, 
+      body: JSON.stringify({
+        idea: newIdea.idea,
         ideaTitle: newIdea.ideaTitle,
-        sdg: newIdea.sdg
+        sdg: newIdea.sdg,
       }),
     };
     console.debug('API Request (generateIdeaJSON):', request3);
@@ -147,20 +158,32 @@ export default function InspirationPage() {
       body: JSON.stringify(data),
     };
     console.debug('API Request (business_plan_roadmap):', request4);
-    const planningResponse = await fetch('https://ted-murex.vercel.app/business_plan_roadmap', request4);
-    console.debug('API Response (business_plan_roadmap) Status:', planningResponse.status);
+    const planningResponse = await fetch(
+      'https://ted-murex.vercel.app/business_plan_roadmap',
+      request4
+    );
+    console.debug(
+      'API Response (business_plan_roadmap) Status:',
+      planningResponse.status
+    );
     const planningData = await planningResponse.json();
     console.debug('API Response (business_plan_roadmap) Data:', planningData);
     localStorage.setItem('planningResults', JSON.stringify(planningData));
-    
+
     // Navigate to the next page
     router.push('/generate/planning');
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className={`transition-all duration-300 ${sdgSectionCollapsed ? 'h-0 overflow-hidden' : 'h-auto'}`}>
-        <h1 className="text-3xl font-bold mb-6">Choose an SDG for Inspiration</h1>
+      <div
+        className={`transition-all duration-300 ${
+          sdgSectionCollapsed ? 'h-0 overflow-hidden' : 'h-auto'
+        }`}
+      >
+        <h1 className="text-3xl font-bold mb-6">
+          Choose an SDG for Inspiration
+        </h1>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {SDGs.map((sdg) => (
             <button
@@ -176,18 +199,22 @@ export default function InspirationPage() {
       {selectedSDG && (
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Selected SDG: {selectedSDG.name}</h2>
-            <button 
+            <h2 className="text-2xl font-semibold">
+              Selected SDG: {selectedSDG.name}
+            </h2>
+            <button
               onClick={() => setSdgSectionCollapsed(!sdgSectionCollapsed)}
               className="text-blue-600 hover:text-blue-800"
             >
               {sdgSectionCollapsed ? 'Change SDG' : 'Hide SDG Selection'}
             </button>
           </div>
-          
+
           {summaries.length > 0 && (
             <>
-              <h3 className="text-xl font-semibold mb-4">Inspired Ideas from TED Talks</h3>
+              <h3 className="text-xl font-semibold mb-4">
+                Inspired Ideas from TED Talks
+              </h3>
               <div className="space-y-4">
                 {summaries.map((sum) => (
                   <div key={sum.url} className="border rounded-lg overflow-hidden">
@@ -196,21 +223,35 @@ export default function InspirationPage() {
                       className="w-full flex justify-between items-center p-4 bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
                       <h4 className="text-lg font-medium">{sum.ideaTitle}</h4>
-                      {expandedSummary === sum.url ? <ChevronUp /> : <ChevronDown />}
+                      {expandedSummary === sum.url ? (
+                        <ChevronUp />
+                      ) : (
+                        <ChevronDown />
+                      )}
                     </button>
                     {expandedSummary === sum.url && (
                       <div className="p-4 space-y-3">
-                        <p className="text-gray-700"><strong>Summary:</strong> {sum.summary}</p>
-                        <p className="text-gray-700"><strong>Idea:</strong> {sum.idea}</p>
+                        <p className="text-gray-700">
+                          <strong>Summary:</strong> {sum.summary}
+                        </p>
+                        <p className="text-gray-700">
+                          <strong>Idea:</strong> {sum.idea}
+                        </p>
                         <div className="flex justify-between items-center">
-                          <Link href={sum.url} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                          <Link
+                            href={sum.url}
+                            className="text-blue-600 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             Watch TED Talk
                           </Link>
                           <button
                             onClick={() => handleEditIdea(sum)}
                             className="flex items-center text-green-600 hover:text-green-700"
                           >
-                            <Edit2 size={16} className="mr-1" /> Edit/Confirm Idea
+                            <Edit2 size={16} className="mr-1" /> Edit/Confirm
+                            Idea
                           </button>
                         </div>
                       </div>
@@ -220,7 +261,7 @@ export default function InspirationPage() {
               </div>
             </>
           )}
-          {loading && <p className="text-lg mt-4">Loading 10 ideas...</p>}
+          {loading && <p className="text-lg mt-4">Generating an idea...</p>}
         </div>
       )}
       {editingIdea && (
@@ -230,13 +271,17 @@ export default function InspirationPage() {
             <input
               type="text"
               value={editingIdea.ideaTitle}
-              onChange={(e) => setEditingIdea({...editingIdea, ideaTitle: e.target.value})}
+              onChange={(e) =>
+                setEditingIdea({ ...editingIdea, ideaTitle: e.target.value })
+              }
               className="w-full p-2 border rounded mb-4"
               placeholder="Idea Title"
             />
             <textarea
               value={editingIdea.idea}
-              onChange={(e) => setEditingIdea({...editingIdea, idea: e.target.value})}
+              onChange={(e) =>
+                setEditingIdea({ ...editingIdea, idea: e.target.value })
+              }
               className="w-full h-40 p-2 border rounded mb-4"
               placeholder="Idea Description"
             />
