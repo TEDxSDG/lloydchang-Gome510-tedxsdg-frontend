@@ -94,6 +94,21 @@ export default function PlanningPage() {
     return <div>Loading...</div>;
   }
 
+  // Function to format the text from API
+  const formatApiResponse = (text: string) => {
+    // Replace '\n' with '<br/>' for single line breaks
+    // Replace '\n\n' with '<br/><br/>' for double line breaks
+    const formattedText = text.replace(/\n/g, '<br/>').replace(/\n\n/g, '<br/><br/>');
+
+    // Bold the "Citations" section
+    const boldedCitations = formattedText.replace(
+      /(Citations:)/g,
+      '**$1**'
+    );
+
+    return marked.parse(boldedCitations); // Parse the markdown
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -108,7 +123,7 @@ export default function PlanningPage() {
           <div className="bg-gray-100 shadow-md rounded-b px-8 pt-6 pb-8">
             {/* Check if 'results' is a string before rendering it as markdown */}
             {typeof results === 'string' ? ( 
-              <div dangerouslySetInnerHTML={{ __html: marked.parse(results) }}></div>
+              <div dangerouslySetInnerHTML={{ __html: formatApiResponse(results) }}></div> 
             ) : (
               <div>Error: Invalid data format for business plan.</div> 
             )}

@@ -258,7 +258,7 @@ export default function FundingPage() {
     // Bold the "Citations" section
     const boldedCitations = formattedText.replace(
       /(Citations:)/g,
-      '**$1**' 
+      '**$1**'
     );
 
     return marked.parse(boldedCitations); // Parse the markdown
