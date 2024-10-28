@@ -1,6 +1,18 @@
 {
   "functions": {
-    "src/**/*.ts": {
+    "pages": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "pages/api": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "src/pages": {
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "src/pages/api": {
       "memory": 1024,
       "maxDuration": 60
     }
