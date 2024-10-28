@@ -3,12 +3,20 @@ import { NextResponse, NextRequest } from "next/server";
 import OpenAI from "openai";
 
 const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+const cloudflareBearerToken = process.env.CLOUDFLARE_BEARER_TOKEN;
+
 if (!openRouterApiKey) {
     console.error("OPENROUTER_API_KEY environment variable not set!");
     throw new Error("OPENROUTER_API_KEY environment variable not set!");
 }
 
-const openai = new OpenAI({
+if (!cloudflareAccountId || !cloudflareBearerToken) {
+    console.error("Cloudflare environment variables not set!");
+    // In production, you should throw an error or return a default response here.
+}
+
+const openaiRouter = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: openRouterApiKey,
     defaultHeaders: {
@@ -16,6 +24,12 @@ const openai = new OpenAI({
         "X-Title": process.env.YOUR_SITE_NAME || "",
     }
 });
+
+const openaiCloudflare = new OpenAI({
+    apiKey: cloudflareBearerToken,
+    baseURL: `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/v1`
+});
+
 
 export async function POST(req: NextRequest) {
     try {
@@ -46,9 +60,11 @@ export async function POST(req: NextRequest) {
 
         console.log("Prompt sent to Gemma:", systemPrompt);
 
+        let completion;
+
         try {
             console.log("About to call Gemma API via OpenRouter...");
-            const completion = await openai.chat.completions.create({
+            completion = await openaiRouter.chat.completions.create({
                 model: "google/gemma-2-9b-it:free",
                 messages: [
                     { role: "system", content: systemPrompt },
@@ -56,56 +72,64 @@ export async function POST(req: NextRequest) {
                 ]
             });
             console.log("Gemma API call successful.");
+        } catch (openRouterError) {
+            console.warn("OpenRouter Error (trying Cloudflare as fallback):", openRouterError);
+            console.log("Trying Cloudflare Workers AI (OpenAI compatible) API as fallback...");
+            completion = await openaiCloudflare.chat.completions.create({
+                model: "@cf/google/gemma-7b-it-lora", 
+                messages: [
+                    // CloudFlare AI worker doesn't seem to support system role messages, hence sending a user role message
+                    { role: "user", content: systemPrompt + '\n\n' + data } 
+                ]
+            });
+            console.log("Cloudflare Workers AI API call successful.");
+        }
 
-            console.log("Raw OpenRouter response:", completion);
+        console.log("Raw response:", completion);
 
-            if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
-                console.error("Invalid response from Gemma via OpenRouter:", completion);
-                return createErrorResponse("Invalid response from Gemma", 500);
-            }
+        if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
+            console.error("Invalid response from Gemma via OpenRouter:", completion);
+            return createErrorResponse("Invalid response from Gemma", 500);
+        }
 
-            let content = completion.choices[0].message.content;
-            console.log("Extracted content from Gemma:", content);
+        let content = completion.choices[0].message.content;
+        console.log("Extracted content from Gemma:", content);
+
+        try {
+            const jsonResponse = JSON.parse(content);
+            return createSuccessResponse(jsonResponse);
+        } catch (parseError) {
+            console.error("Initial JSON parsing failed:", parseError);
+            console.error("Response that failed initial parsing:", content);
+
+            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
 
             try {
-                const jsonResponse = JSON.parse(content);
-                return createSuccessResponse(jsonResponse);
-            } catch (parseError) {
-                console.error("Initial JSON parsing failed:", parseError);
-                console.error("Response that failed initial parsing:", content);
-
-                content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                const cleanedJsonResponse = JSON.parse(content);
+                console.warn("Removed backticks and parsed successfully. Full response:", content);
+                return createSuccessResponse(cleanedJsonResponse);
+            } catch (cleanedParseError) {
+                console.error("Parsing failed even after removing backticks:", cleanedParseError);
 
                 try {
-                    const cleanedJsonResponse = JSON.parse(content);
-                    console.warn("Removed backticks and parsed successfully. Full response:", content);
-                    return createSuccessResponse(cleanedJsonResponse);
-                } catch (cleanedParseError) {
-                    console.error("Parsing failed even after removing backticks:", cleanedParseError);
+                    const regex = /{.*}/s;
+                    const match = content.match(regex);
 
-                    try {
-                        const regex = /{.*}/s;
-                        const match = content.match(regex);
-
-                        if (match) {
-                            const extractedJson = JSON.parse(match[0]);
-                            console.warn("Used regex fallback. Full response:", content);
-                            return createSuccessResponse(extractedJson);
-                        } else {
-                            return createErrorResponse("Failed to extract JSON after backtick removal and regex", 500, { geminiResponse: content, dataReceived: data });
-                        }
-
-                    } catch (regexError) {
-                        console.error("Regex extraction and parsing failed:", regexError);
-                        return createErrorResponse("JSON parsing and extraction failed", 500, { geminiResponse: content, dataReceived: data });
+                    if (match) {
+                        const extractedJson = JSON.parse(match[0]);
+                        console.warn("Used regex fallback. Full response:", content);
+                        return createSuccessResponse(extractedJson);
+                    } else {
+                        return createErrorResponse("Failed to extract JSON after backtick removal and regex", 500, { geminiResponse: content, dataReceived: data });
                     }
+
+                } catch (regexError) {
+                    console.error("Regex extraction and parsing failed:", regexError);
+                    return createErrorResponse("JSON parsing and extraction failed", 500, { geminiResponse: content, dataReceived: data });
                 }
             }
-
-        } catch (openRouterError) {
-            console.error("OpenRouter Error:", openRouterError);
-            return createErrorResponse("An error occurred while contacting OpenRouter", 500);
         }
+
 
     } catch (outerError) {
         console.error("General Error:", outerError);

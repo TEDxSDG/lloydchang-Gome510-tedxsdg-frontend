@@ -16,7 +16,7 @@ if (!cloudflareAccountId || !cloudflareBearerToken) {
     // In production, you should throw an error or return a default response here.
 }
 
-const openaiRouter = new OpenAI({ // Renamed for clarity
+const openaiRouter = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: openRouterApiKey,
     defaultHeaders: {
@@ -25,7 +25,7 @@ const openaiRouter = new OpenAI({ // Renamed for clarity
     }
 });
 
-const openaiCloudflare = new OpenAI({ // New OpenAI instance for Cloudflare
+const openaiCloudflare = new OpenAI({
     apiKey: cloudflareBearerToken,
     baseURL: `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/v1`
 });
@@ -65,7 +65,7 @@ Valid JSON Response Format:
   "idea": "string",
   "ideaTitle": "string"
 }
-        `; // Strict prompt with JSON example
+        `; 
 
         console.log("Prompt sent to Gemma:", systemPrompt);
 
@@ -83,58 +83,64 @@ Valid JSON Response Format:
             console.log("Trying Cloudflare Workers AI (OpenAI compatible) API as fallback...");
             completion = await openaiCloudflare.chat.completions.create({
                 model: "@cf/google/gemma-7b-it-lora", 
+                // CloudFlare AI worker doesn't seem to support system role messages, hence sending a user role message
                 messages: [{ role: "user", content: systemPrompt }] 
             });
             console.log("Cloudflare Workers AI API call successful.");
         }
 
-        if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
-            console.error("Invalid response from AI provider:", completion);
-            return NextResponse.json({ error: "Invalid response from AI provider" }, { status: 500 });
-        }
-
-        let content = completion.choices[0].message.content;
-        console.log("Extracted content from AI provider:", content);
-
-        try {
-            const jsonResponse = JSON.parse(content); // Attempt direct parse
-            return NextResponse.json(jsonResponse);
-        } catch (parseError) {
-            console.error("Initial JSON parsing failed:", parseError);
-            console.error("Response that failed initial parsing:", content);
-
-            // Remove backticks and retry parsing
-            content = content.replace(/```json/g, '').replace(/```/g, '').trim();
-
-            try {
-                const cleanedJsonResponse = JSON.parse(content);
-                console.warn("Removed backticks and parsed successfully. Full response:", content);
-                return NextResponse.json(cleanedJsonResponse);
-            } catch (cleanedParseError) {
-                console.error("Parsing failed even after removing backticks:", cleanedParseError);
-
-                try { // Regex fallback (optional, but recommended for robustness)
-                    const regex = /{.*}/s; // Regex to extract JSON
-                    const match = content.match(regex);
-
-                    if (match) {
-                        const extractedJson = JSON.parse(match[0]);
-                        console.warn("Used regex fallback.  Full response:", content);
-                        return NextResponse.json(extractedJson);
-                    } else {
-                        return NextResponse.json({ error: "Failed to extract JSON after backtick removal and regex", geminiResponse: content, dataReceived: data }, { status: 500 });
-                    }
-
-                } catch (regexError) {
-                    console.error("Regex extraction and parsing failed:", regexError);
-                    return NextResponse.json({ error: "JSON parsing and extraction failed", geminiResponse: content, dataReceived: data }, { status: 500 });
-
-                }
-            }
-        }
+        return handleAIResponse(completion); 
 
     } catch (outerError) {
         console.error("General Error:", outerError);
         return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    }
+}
+
+// Function to handle the AI response and extract JSON
+function handleAIResponse(completion: any): NextResponse {
+    if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
+        console.error("Invalid response from AI provider:", completion);
+        return NextResponse.json({ error: "Invalid response from AI provider" }, { status: 500 });
+    }
+
+    let content = completion.choices[0].message.content;
+    console.log("Extracted content from AI provider:", content);
+
+    try {
+        const jsonResponse = JSON.parse(content); 
+        return NextResponse.json(jsonResponse);
+    } catch (parseError) {
+        console.error("Initial JSON parsing failed:", parseError);
+        console.error("Response that failed initial parsing:", content);
+
+        
+        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        try {
+            const cleanedJsonResponse = JSON.parse(content);
+            console.warn("Removed backticks and parsed successfully. Full response:", content);
+            return NextResponse.json(cleanedJsonResponse);
+        } catch (cleanedParseError) {
+            console.error("Parsing failed even after removing backticks:", cleanedParseError);
+
+            try { 
+                const regex = /{.*}/s; 
+                const match = content.match(regex);
+
+                if (match) {
+                    const extractedJson = JSON.parse(match[0]);
+                    console.warn("Used regex fallback.  Full response:", content);
+                    return NextResponse.json(extractedJson);
+                } else {
+                    return NextResponse.json({ error: "Failed to extract JSON after backtick removal and regex", geminiResponse: content }, { status: 500 });
+                }
+
+            } catch (regexError) {
+                console.error("Regex extraction and parsing failed:", regexError);
+                return NextResponse.json({ error: "JSON parsing and extraction failed", geminiResponse: content }, { status: 500 });
+
+            }
+        }
     }
 }
