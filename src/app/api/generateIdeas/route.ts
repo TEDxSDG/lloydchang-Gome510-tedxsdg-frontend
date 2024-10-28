@@ -2,6 +2,14 @@
 import { NextResponse, NextRequest } from "next/server";
 import OpenAI from "openai";
 
+interface OpenAIResponse {
+    choices: {
+        message: {
+            content: string | null;
+        };
+    }[];
+}
+
 const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const cloudflareBearerToken = process.env.CLOUDFLARE_BEARER_TOKEN;
@@ -69,7 +77,7 @@ Valid JSON Response Format:
 
         console.log("Prompt sent to Gemma:", systemPrompt);
 
-        let completion;
+        let completion: OpenAIResponse;
 
         try {
             console.log("Trying to call Gemma API via OpenRouter first...");
@@ -98,23 +106,26 @@ Valid JSON Response Format:
 }
 
 // Function to handle the AI response and extract JSON
-function handleAIResponse(completion: any): NextResponse {
-    if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || !completion.choices[0].message.content) {
+function handleAIResponse(completion: OpenAIResponse): NextResponse {
+    if (!completion || !completion.choices || !completion.choices.length || !completion.choices[0].message || completion.choices[0].message.content === null) {
         console.error("Invalid response from AI provider:", completion);
         return NextResponse.json({ error: "Invalid response from AI provider" }, { status: 500 });
     }
 
     let content = completion.choices[0].message.content;
-    console.log("Extracted content from AI provider:", content);
+
+    if (content === null) {
+        console.error("AI provider returned null content:", completion);
+        return NextResponse.json({ error: "AI provider returned empty content" }, { status: 500 });
+    }
 
     try {
-        const jsonResponse = JSON.parse(content); 
+        const jsonResponse = JSON.parse(content); // content is now guaranteed to be a string
         return NextResponse.json(jsonResponse);
     } catch (parseError) {
         console.error("Initial JSON parsing failed:", parseError);
         console.error("Response that failed initial parsing:", content);
 
-        
         content = content.replace(/```json/g, '').replace(/```/g, '').trim();
 
         try {
